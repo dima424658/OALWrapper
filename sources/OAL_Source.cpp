@@ -25,8 +25,6 @@
 #include "OALWrapper/OAL_Helper.h"
 #include "OALWrapper/OAL_SourceManager.h"
 
-#include <SDL_mutex.h>
-
 //--------------------------------------------------------------------------------
 
 extern cOAL_Device*	gpDevice;
@@ -38,8 +36,7 @@ using namespace std;
 cOAL_Source::cOAL_Source(cOAL_SourceManager *apSourceManager, int alId, int alSends): iOAL_LowLevelObject("Source"),
 																					  mlId(alId), 
 																					  mlPriority(255), 
-																					  mlRefCount(0), 
-																					  mpSourceMutex(NULL), 
+																					  mlRefCount(0),
 																					  mpSourceManager(NULL), 
 																					  mpAudioData(NULL),
 																					  mbPlaying(false), 
@@ -52,9 +49,6 @@ cOAL_Source::cOAL_Source(cOAL_SourceManager *apSourceManager, int alId, int alSe
 	if(apSourceManager)
 	{
 		mpSourceManager = apSourceManager;
-		
-		if(mpSourceManager->IsThreadAlive())
-			mpSourceMutex = SDL_CreateMutex();
 	}
 
 	if(alSends && gpDevice->IsEFXActive())
@@ -83,13 +77,6 @@ cOAL_Source::~cOAL_Source()
 {
 	LogMsg("", eOAL_LogVerbose_High, eOAL_LogMsg_Command, "Source Destructor called\n" );
 	Stop();
-
-	if(mpSourceMutex)
-	{
-		LogMsg("", eOAL_LogVerbose_High, eOAL_LogMsg_Info, "Destroying Mutex...\n" );
-		SDL_DestroyMutex(mpSourceMutex);
-		mpSourceMutex = NULL;
-	}
 
 	if(mpFilter)
 	{
@@ -149,13 +136,13 @@ bool cOAL_Source::IsValidObject()
 void cOAL_Source::Lock()
 {
 	if(mpSourceManager->IsThreadAlive())
-		SDL_LockMutex(mpSourceMutex);
+		mSourceMutex.lock();
 }
 
 void cOAL_Source::Unlock()
 {
 	if ( mpSourceManager->IsThreadAlive() )
-		SDL_UnlockMutex(mpSourceMutex);
+		mSourceMutex.unlock();
 }
 
 //--------------------------------------------------------------------------------

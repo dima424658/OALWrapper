@@ -10,8 +10,6 @@
 #include "OALWrapper/OAL_Helper.h"
 #include "OALWrapper/OAL_EFXManager.h"
 
-#include <SDL_mutex.h>
-
 cOAL_EffectSlot::cOAL_EffectSlot( cOAL_EFXManager* apEFXManager, int alId) : iOAL_LowLevelObject("EffectSlot"),
 																			  mlId(alId),
 																			  mpEffect(NULL),
@@ -19,16 +17,11 @@ cOAL_EffectSlot::cOAL_EffectSlot( cOAL_EFXManager* apEFXManager, int alId) : iOA
 																			  mbAutoAdjust (true),
 																			  mpEFXManager(apEFXManager)
 {
-	if (mpEFXManager->IsThreadAlive())
-		mpMutex = SDL_CreateMutex();
 	mbStatus = CreateLowLevelID();
 }
 
 cOAL_EffectSlot::~cOAL_EffectSlot()
 {
-	if(mpMutex)
-		SDL_DestroyMutex(mpMutex);
-
 	DestroyLowLevelID();
 }
 
@@ -121,11 +114,11 @@ void cOAL_EffectSlot::Update()
 void cOAL_EffectSlot::Lock()
 {
 	if ( mpEFXManager->IsThreadAlive() )
-		SDL_LockMutex(mpMutex);
+		mMutex.lock();
 }
 
 void cOAL_EffectSlot::Unlock()
 {
 	if ( mpEFXManager->IsThreadAlive() )
-		SDL_UnlockMutex(mpMutex);
+		mMutex.unlock();
 }

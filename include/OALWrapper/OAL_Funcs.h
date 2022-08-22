@@ -20,7 +20,6 @@
 #pragma comment(lib, "libvorbis.lib")
 #pragma comment(lib, "libvorbisfile.lib")
 #pragma comment(lib, "openal32.lib")
-#pragma comment(lib, "SDL.lib")
 #endif
 
 #include "OAL_Types.h"

@@ -1,11 +1,10 @@
 #include "OALWrapper/OAL_Funcs.h"
 #include "OALWrapper/OAL_Stream.h"
 
-#include <SDL/SDL.h>
-
 #include <string>
 #include <cstdlib>
 #include <list>
+#include <thread>
 
 #include <signal.h>
 
@@ -22,7 +21,7 @@ class Playlist {
     int             mSource;
 
     bool            mThreadAlive;
-    SDL_Thread*     mUpdaterThread;
+    std::thread     mUpdaterThread;
 
 public:
     Playlist(const stringList& aSongs) :
@@ -48,15 +47,15 @@ public:
         stopSong();
         if (mThreadAlive) {
             mThreadAlive = false;
-            SDL_WaitThread(mUpdaterThread, 0);
-            mUpdaterThread = 0;
+            if(mUpdaterThread.joinable())
+                mUpdaterThread.join();
         }
     }
     
     void Init()
     {
         mThreadAlive = true;
-        mUpdaterThread = SDL_CreateThread(Playlist::UpdaterThread, this);
+        mUpdaterThread = std::thread{Playlist::UpdaterThread, std::ref(*this)};
     }
     
     void playSong()
@@ -75,23 +74,21 @@ public:
         }
     }
 
-    static int UpdaterThread(void* data)
+    static void UpdaterThread(Playlist& playlist)
     {
-        Playlist* playlist = (Playlist*)data;
         int lWaitTime = 1000 / 30; // 30times /second
-        while (playlist->mThreadAlive) {
-            if (playlist->mSource) {
-                if (!OAL_Source_IsPlaying(playlist->mSource)) {
-                    ++playlist->mCurrentSong;
-                    if (playlist->mCurrentSong == playlist->mSongs.end()) {
-                        playlist->mCurrentSong = playlist->mSongs.begin();
+        while (playlist.mThreadAlive) {
+            if (playlist.mSource) {
+                if (!OAL_Source_IsPlaying(playlist.mSource)) {
+                    ++playlist.mCurrentSong;
+                    if (playlist.mCurrentSong == playlist.mSongs.end()) {
+                        playlist.mCurrentSong = playlist.mSongs.begin();
                     }
-                    playlist->playSong();
+                    playlist.playSong();
                 }
             }
-            SDL_Delay(lWaitTime);
+		    std::this_thread::sleep_for(std::chrono::milliseconds{lWaitTime});
         }
-        return 0;
     }
     
     void stopSong()
@@ -146,7 +143,7 @@ int main (int argc, const char *const argv[])
     signal(SIGINT, sighandler);
     
     while (!done) {
-        SDL_Delay(1000);
+		std::this_thread::sleep_for(std::chrono::milliseconds{1000});
     }
 
     printf ("Cleaning up...\n");

@@ -8,6 +8,8 @@
 #ifndef _OAL_EFFECT_H
 #define _OAL_EFFECT_H
 
+#include <mutex>
+
 #include "OAL_LowLevelObject.h"
 
 class cOAL_Effect : public iOAL_LowLevelObject
@@ -39,7 +41,7 @@ protected:
 	ALuint	mlEffectId;
 	bool	mbNeedsUpdate;
 
-	SDL_mutex* mpMutex;
+	std::mutex mMutex;
 };
 
 #endif	// _OAL_EFFECT_H

@@ -9,23 +9,17 @@
 #include "OALWrapper/OAL_Source.h"
 #include "OALWrapper/OAL_Device.h"
 
-#include <SDL_thread.h>
-#include <SDL_timer.h>
-#include <SDL_version.h>
-
 //-----------------------------------------------------------------------------------
 
 extern cOAL_Device* gpDevice;
 
 //-----------------------------------------------------------------------------------
 
-int UpdaterThread(void*);
+void UpdaterThread();
 
 //-----------------------------------------------------------------------------------
 
-cOAL_SourceManager::cOAL_SourceManager() : mpStreamListMutex(NULL), 
-										   mpUpdaterThread(NULL),
-										   mbUseThreading(false), 
+cOAL_SourceManager::cOAL_SourceManager() : mbUseThreading(false), 
 										   mlNumOfVoices(0), 
 										   mlAvailableVoices(0), 
 										   mbManageVoices(true)
@@ -91,12 +85,8 @@ bool cOAL_SourceManager::Initialize ( bool abManageVoices, int alNumSourcesHint,
 		// This converts the desired frequency in aInput to amount of milliseconds to wait.
 		// Note that this is an int value, so any freq above 1000 will turn mlThreadWaitTime to 0;
 		mlThreadWaitTime = 1000/alUpdateFreq;
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-		mpUpdaterThread = SDL_CreateThread ( UpdaterThread, "OAL Updater", NULL );
-#else
-		mpUpdaterThread = SDL_CreateThread ( UpdaterThread, NULL );
-#endif
-		mpStreamListMutex = SDL_CreateMutex ();
+
+		mUpdaterThread = std::thread{UpdaterThread};// "OAL Updater"
 
 		LogMsg("", eOAL_LogVerbose_Medium, eOAL_LogMsg_Info, "Done\n" );
 	}
@@ -114,9 +104,8 @@ void cOAL_SourceManager::Destroy()
 	{
 		LogMsg("", eOAL_LogVerbose_Medium, eOAL_LogMsg_Info,"Stopping updater thread...\n" );
 		mbUseThreading = false;
-		SDL_WaitThread ( mpUpdaterThread, 0 );
-		mpUpdaterThread = NULL;
-		SDL_DestroyMutex(mpStreamListMutex);
+		if(mUpdaterThread.joinable())
+			mUpdaterThread.join();
 	}
 
 	//Delete sources
@@ -176,7 +165,7 @@ cOAL_Source* cOAL_SourceManager::GetSource(int alSourceHandle, bool abSkipRefCou
 void cOAL_SourceManager::LockStreamList()
 {
 	if(mbUseThreading)
-		SDL_LockMutex( mpStreamListMutex );
+		mStreamListMutex.lock();
 }
 
 //-----------------------------------------------------------------------------------
@@ -184,7 +173,7 @@ void cOAL_SourceManager::LockStreamList()
 void cOAL_SourceManager::UnlockStreamList()
 {
 	if(mbUseThreading)
-		SDL_UnlockMutex( mpStreamListMutex );
+		mStreamListMutex.unlock();
 }
 
 //-----------------------------------------------------------------------------------
@@ -327,7 +316,7 @@ cOAL_Source* cOAL_SourceManager::GetAvailableSource ( unsigned int alPriority, i
 
 //-----------------------------------------------------------------------------------
 
-int UpdaterThread(void* alUnusedArg)
+void UpdaterThread()
 {
 	cOAL_SourceManager* pSourceManager = gpDevice->GetSourceManager();
 	
@@ -338,9 +327,8 @@ int UpdaterThread(void* alUnusedArg)
 		//	While the thread lives, perform the update
         pSourceManager->UpdateStreaming();
 		//	And rest a bit
-		SDL_Delay(lWaitTime);			
+		std::this_thread::sleep_for(std::chrono::milliseconds{lWaitTime});	
 	}
-	return 0;
 }
 
 //-----------------------------------------------------------------------------------

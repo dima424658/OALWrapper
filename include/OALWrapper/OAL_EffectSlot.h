@@ -8,6 +8,8 @@
 #ifndef _OAL_EFFECTSLOT_H
 #define _OAL_EFFECTSLOT_H
 
+#include <mutex>
+
 #include "OAL_Types.h"
 #include "OAL_LowLevelObject.h"
 
@@ -49,8 +51,7 @@ private:
 	bool mbAutoAdjust;
 	cOAL_EFXManager* mpEFXManager;
 
-	SDL_mutex*		mpMutex;
-    
+	std::mutex mMutex;    
 };
 
 #endif	// _OAL_EFFECTSLOT_H

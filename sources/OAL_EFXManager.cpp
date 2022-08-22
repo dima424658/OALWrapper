@@ -12,11 +12,7 @@
 #include "OALWrapper/OAL_Filter.h"
 #include "OALWrapper/OAL_Device.h"
 
-#include <SDL_thread.h>
-#include <SDL_timer.h>
-#include <SDL_version.h>
-
-int SlotUpdaterThread(void* alUnusedArg);
+void SlotUpdaterThread();
 
 extern cOAL_Device* gpDevice;
 
@@ -203,11 +199,7 @@ bool cOAL_EFXManager::Initialize(int alNumSlotsHint, int alNumSends, bool abUseT
 
 		mlThreadWaitTime = 1000/alSlotUpdateFreq;
         
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-		mpUpdaterThread = SDL_CreateThread ( SlotUpdaterThread, "EFX Slot Updater", NULL );
-#else
-		mpUpdaterThread = SDL_CreateThread ( SlotUpdaterThread, NULL );
-#endif
+		mUpdaterThread = std::thread{SlotUpdaterThread}; // "EFX Slot Updater"
 	}
 	
 	LogMsg("",eOAL_LogVerbose_Medium, eOAL_LogMsg_Info, "EFX succesfully initialized.\n" );
@@ -229,8 +221,8 @@ void cOAL_EFXManager::Destroy()
 	{
 		LogMsg("",eOAL_LogVerbose_Medium, eOAL_LogMsg_Info, "Stopping Slot updater...\n" );
 		mbUsingThread = false;
-		SDL_WaitThread ( mpUpdaterThread, 0 );
-		mpUpdaterThread = NULL;
+		if(mUpdaterThread.joinable())
+			mUpdaterThread.join();
 	}
 
 	LogMsg("",eOAL_LogVerbose_Medium, eOAL_LogMsg_Info, "Destroying Effect Slots...\n" );
@@ -382,7 +374,7 @@ inline int cOAL_EFXManager::GetThreadWaitTime()
 	return mlThreadWaitTime;
 }
 
-int SlotUpdaterThread ( void* alUnusedArg )
+void SlotUpdaterThread ()
 {
 	cOAL_EFXManager* pEFXManager = gpDevice->GetEFXManager();
 	
@@ -393,8 +385,7 @@ int SlotUpdaterThread ( void* alUnusedArg )
 		//	While the thread lives, perform the update
         pEFXManager->UpdateSlots();
 		//	And rest a bit
-		SDL_Delay ( lWaitTime );			
+		std::this_thread::sleep_for(std::chrono::milliseconds{lWaitTime});
 	}
-	return 0;
 }
 

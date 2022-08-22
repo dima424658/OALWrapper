@@ -8,6 +8,8 @@
 #ifndef _OAL_EFXMANAGER_H
 #define _OAL_EFXMANAGER_H
 
+#include <thread>
+
 #include "OAL_Types.h"
 #include "OAL_Helper.h"
 #include "OAL_LoggerObject.h"
@@ -80,7 +82,7 @@ private:
 	tOALFilterList* mplstFilterList;
 
 	bool mbUsingThread;
-	SDL_Thread*		mpUpdaterThread;
+	std::thread 	mUpdaterThread;
 	int				mlThreadWaitTime;
 
 };

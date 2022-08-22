@@ -16,6 +16,8 @@
 #ifndef _OAL_SOURCE_H
 #define _OAL_SOURCE_H
 
+#include <mutex>
+
 class cOAL_SourceManager;
 
 #include "OAL_Types.h"
@@ -161,7 +163,7 @@ private:
 	unsigned int mlPriority;
 	unsigned int mlRefCount;
 
-	SDL_mutex*	mpSourceMutex;
+	std::mutex	mSourceMutex;
 
 	cOAL_SourceManager* mpSourceManager;
 	

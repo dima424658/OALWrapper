@@ -8,11 +8,8 @@
 #include "OALWrapper/OAL_Effect.h"
 #include "OALWrapper/OAL_Helper.h"
 
-#include <SDL_mutex.h>
-
 cOAL_Effect::cOAL_Effect() : iOAL_LowLevelObject("Effect"),
-							 mbNeedsUpdate(true), 
-							 mpMutex(NULL)
+							 mbNeedsUpdate(true)
 {
 	mbStatus = CreateLowLevelID();
 }
@@ -60,10 +57,10 @@ bool cOAL_Effect::IsValidObject()
 
 void cOAL_Effect::Lock()
 {
-	SDL_LockMutex(mpMutex);
+	mMutex.lock();
 }
 
 void cOAL_Effect::Unlock()
 {
-	SDL_UnlockMutex(mpMutex);
+	mMutex.unlock();
 }

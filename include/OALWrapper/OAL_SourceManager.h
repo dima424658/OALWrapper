@@ -8,6 +8,9 @@
 #ifndef _OAL_SOURCEMANAGER_H
 #define _OAL_SOURCEMANAGER_H
 
+#include <mutex>
+#include <thread>
+
 #include "OAL_Types.h"
 #include "OAL_Helper.h"
 #include "OAL_LoggerObject.h"
@@ -49,8 +52,9 @@ private:
 	int mlNumOfVoices;
 	int mlAvailableVoices;
 
-    SDL_mutex*			mpStreamListMutex;
-	SDL_Thread*			mpUpdaterThread;
+	std::mutex			mStreamListMutex;
+	std::thread			mUpdaterThread;
+
 	int					mlThreadWaitTime;
 	bool				mbUseThreading;
 
