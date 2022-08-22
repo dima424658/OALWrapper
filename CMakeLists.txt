@@ -1,5 +1,14 @@
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 2.9)
 project (OALWrapper)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    add_compile_options(-fdiagnostics-color=always)
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    add_compile_options(-fcolor-diagnostics)
+endif()
 
 set(OALWrapper_VERSION_MAJOR 1)
 set(OALWrapper_VERSION_MINOR 0)
@@ -119,11 +128,7 @@ ELSEIF(APP_PRIVATE_LIB_DIR AND APPLE)
 
     FIND_PACKAGE(OpenAL)
 ELSE()
-    FIND_PACKAGE(OGG)
-    FIND_PACKAGE(Vorbis)
-    IF(NOT(APPLE))
-        FIND_PACKAGE(VorbisFile)
-    ENDIF()
+    FIND_PACKAGE(Ogg)
     FIND_PACKAGE(OpenAL)
     IF(USE_SDL2)
         FIND_PACKAGE(SDL2)

@@ -92,7 +92,7 @@ bool cOAL_Device::Init( cOAL_Init_Params& acParams )
 	
 	LogMsg("",eOAL_LogVerbose_Low, eOAL_LogMsg_Info, "Attempting to open device...\n" );
 	// Open the device, if fails return false
-	if(acParams.msDeviceName.empty())
+	if(acParams.msDeviceName.empty() || acParams.msDeviceName.compare("NULL") == 0)
 		mpDevice = alcOpenDevice(NULL);
 	else
 		mpDevice = alcOpenDevice( acParams.msDeviceName.c_str() );
