@@ -69,10 +69,15 @@ if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.25")
   message(DEPRECATION "CMake >3.25 has built-in OpenAL targert")
 endif()
 
+if(APPLE)
+  set(CMAKE_FIND_USE_CMAKE_SYSTEM_PATH 0)
+endif()
+
 find_path(OPENAL_INCLUDE_DIR al.h
   HINTS
     ENV OPENALDIR
   PATHS
+    /opt/homebrew/opt/openal-soft
     ~/Library/Frameworks
     /Library/Frameworks
     /opt
@@ -91,6 +96,7 @@ find_library(OPENAL_LIBRARY
   HINTS
     ENV OPENALDIR
   PATHS
+    /opt/homebrew/opt/openal-soft
     ~/Library/Frameworks
     /Library/Frameworks
     /opt

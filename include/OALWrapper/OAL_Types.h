@@ -57,10 +57,10 @@
 #include <list>
 
 // This expects the headers from the OALWrapper source (to keep things consistent and clean)
-#include <AL/al.h>
-#include <AL/alc.h>
-#include <AL/alext.h>
-#include <AL/efx.h>
+#include <al.h>
+#include <alc.h>
+#include <alext.h>
+#include <efx.h>
 
 typedef enum
 {
